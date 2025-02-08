@@ -14,6 +14,11 @@
   @apply text-4xl font-bold mb-8 text-gray-900; /* Bigger text, minimal style */
 }
 
+/* Personalized Greeting */
+.personalized-greeting {
+  @apply text-2xl font-semibold text-gray-800 mb-4;
+}
+
 /* Section Container (for Notifications & Assignments) */
 .section-container {
   @apply bg-white shadow-md rounded-lg p-6 mb-6 border border-gray-200; /* Minimalist card UI */

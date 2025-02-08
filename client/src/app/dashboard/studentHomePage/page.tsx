@@ -1,9 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs"; // ✅ Get user info from Clerk
 import "@/styles/studentHome.css"; // ✅ Import Tailwind styles
 
 export default function StudentHomePage() {
+  const { user } = useUser(); // ✅ Get user data
+
+  // Function to determine the greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
+
   // Function to determine the current semester
   const getCurrentSemester = () => {
     const month = new Date().getMonth() + 1; // JS months are 0-based
@@ -44,6 +55,11 @@ export default function StudentHomePage() {
 
   return (
     <div className="student-home-container">
+      {/* Personalized Greeting */}
+      <h2 className="personalized-greeting">
+        {getGreeting()}, {user?.firstName || "Student"}!
+      </h2>
+
       {/* Semester Title */}
       <h1 className="semester-title">Welcome to {getCurrentSemester()}</h1>
 
