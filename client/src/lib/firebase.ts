@@ -1,6 +1,6 @@
 // lib/firebase.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -13,10 +13,8 @@ const firebaseConfig = {
   measurementId: "G-Z6QS26NTSV"
 };
 
-// Ensure Firebase is initialized only once
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-
-// Firestore Database
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-export { db };
+export { db, doc, setDoc, getDoc, updateDoc, collection, getDocs };
