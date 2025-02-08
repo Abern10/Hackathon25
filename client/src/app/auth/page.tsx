@@ -2,17 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useAuth, useUser, SignIn, useClerk} from "@clerk/nextjs";
-import { NextRequest, NextResponse } from 'next/server'
-import { clerkClient } from '@clerk/nextjs/server'
+import { useAuth, useUser, SignIn } from "@clerk/nextjs";
 
 export default function AuthPage() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const { user } = useUser();
-  const clerk = useClerk();
-
-  const [selectedRole, setSelectedRole] = useState("");
 
   useEffect(() => {
     if (isSignedIn && user) {
@@ -36,7 +31,7 @@ export default function AuthPage() {
     try {
       if (!user) return;
 
-      const response = await fetch('/public/route.ts', {
+      const response = await fetch('/api/updateRole', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,6 +46,8 @@ export default function AuthPage() {
         throw new Error('Failed to update role');
       }
 
+      await user.reload();
+
       if (role === "professor") {
         router.replace("/dashboard/professorHomePage");
       } else {
@@ -61,9 +58,6 @@ export default function AuthPage() {
     }
   };
 
-  
-
-
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-3xl font-bold mb-4">Welcome to Hackathon25</h1>
@@ -73,7 +67,10 @@ export default function AuthPage() {
 
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm">
         {!isSignedIn ? (
-          <SignIn routing="path" path="/auth" />
+          <SignIn 
+            routing="hash" 
+            fallbackRedirectUrl="/auth"
+          />
         ) : (
           <div>
             <h2 className="text-xl font-semibold mb-3">Select Your Role:</h2>
