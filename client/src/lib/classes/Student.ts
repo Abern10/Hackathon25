@@ -34,7 +34,7 @@ export class Student {
     }
 
     // can only get access instead of setting it
-    public getAccess(): number {
+    public getAccess(): object {
         return this.access;
     }
 }
