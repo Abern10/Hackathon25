@@ -2,47 +2,165 @@
 import React, { useState, useEffect } from "react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, parseISO, startOfWeek, endOfWeek } from "date-fns";
 import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
+import { collection, addDoc, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useAuth } from "@clerk/nextjs";
 
 interface Event {
-  id: number;
+  id?: string;
   title: string;
   date: string;
   time: string;
   description: string;
-  category: string;
+  category?: string;
+  createdBy: string;
+  creatorRole: 'student' | 'professor';
+  isPublic: boolean;
 }
 
-const App: React.FC = () => {
+const StudentCalendar: React.FC = () => {
+  const { userId, isLoaded, isSignedIn } = useAuth();
+  const [userRole, setUserRole] = useState<'student' | 'professor' | null>(null);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<Event[]>([]);
   const [showEventForm, setShowEventForm] = useState<boolean>(false);
   const [newEvent, setNewEvent] = useState<Event>({
-    id: 0,
     title: "",
     date: format(new Date(), "yyyy-MM-dd"),
     time: "",
     description: "",
-    category: "default"
+    createdBy: userId || "",
+    creatorRole: 'student',
+    isPublic: false
   });
 
-  useEffect(() => {
-    try {
-      const savedEvents = localStorage.getItem("calendarEvents");
-      if (savedEvents) {
-        setEvents(JSON.parse(savedEvents));
-      }
-    } catch (error) {
-      console.error("Error loading events:", error);
+  // Function to get event style based on event type
+  const getEventStyle = (event: Event) => {
+    if (event.creatorRole === 'student') {
+      return 'bg-green-100 text-green-800 border border-green-300';
     }
-  }, []);
 
+    // Professor event styles based on category
+    const colors = {
+      default: 'bg-purple-100 text-purple-800 border border-purple-300',
+      assignment: 'bg-red-100 text-red-800 border border-red-300',
+      lecture: 'bg-blue-100 text-blue-800 border border-blue-300',
+      exam: 'bg-orange-100 text-orange-800 border border-orange-300',
+      office_hours: 'bg-green-100 text-green-800 border border-green-300'
+    };
+
+    return event.category && event.category in colors 
+      ? colors[event.category as keyof typeof colors]
+      : colors.default;
+  };
+
+  // Fetch user role from Firebase
   useEffect(() => {
-    try {
-      localStorage.setItem("calendarEvents", JSON.stringify(events));
-    } catch (error) {
-      console.error("Error saving events:", error);
+    const fetchUserRole = async () => {
+      if (!userId) return;
+
+      try {
+        const studentDoc = await getDoc(doc(db, 'students', userId));
+        if (studentDoc.exists()) {
+          setUserRole('student');
+          setNewEvent(prev => ({
+            ...prev,
+            createdBy: userId,
+            creatorRole: 'student',
+            isPublic: false
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching user role:", error);
+      }
+    };
+
+    fetchUserRole();
+  }, [userId]);
+
+  // Fetch events from Firebase
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!userId || !userRole) return;
+
+      try {
+        const eventsRef = collection(db, 'calendar_events');
+        let fetchedEvents: Event[] = [];
+
+        // Fetch all professor events (public)
+        const publicEventsQuery = query(
+          eventsRef,
+          where('creatorRole', '==', 'professor')
+        );
+        const publicSnapshot = await getDocs(publicEventsQuery);
+        publicSnapshot.forEach((doc) => {
+          fetchedEvents.push({ ...doc.data() as Event, id: doc.id });
+        });
+
+        // Fetch student's private events
+        const privateEventsQuery = query(
+          eventsRef,
+          where('createdBy', '==', userId)
+        );
+        const privateSnapshot = await getDocs(privateEventsQuery);
+        privateSnapshot.forEach((doc) => {
+          fetchedEvents.push({ ...doc.data() as Event, id: doc.id });
+        });
+
+        setEvents(fetchedEvents);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
+
+    fetchEvents();
+  }, [userId, userRole]);
+
+  const handleEventSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    
+    if (!userId || !userRole) {
+      alert("Please sign in to add events");
+      return;
     }
-  }, [events]);
+
+    if (!newEvent.title.trim()) {
+      alert("Please enter an event title");
+      return;
+    }
+
+    try {
+      const eventToAdd: Omit<Event, 'id'> = {
+        ...newEvent,
+        title: newEvent.title.trim(),
+        description: newEvent.description.trim(),
+        createdBy: userId,
+        creatorRole: 'student',
+        isPublic: false
+      };
+
+      // Add event to Firestore
+      const docRef = await addDoc(collection(db, 'calendar_events'), eventToAdd);
+
+      // Update local state
+      setEvents(prevEvents => [...prevEvents, { ...eventToAdd, id: docRef.id }]);
+      
+      // Reset form
+      setNewEvent({
+        title: "",
+        date: format(new Date(), "yyyy-MM-dd"),
+        time: "",
+        description: "",
+        createdBy: userId,
+        creatorRole: 'student',
+        isPublic: false
+      });
+      setShowEventForm(false);
+    } catch (error) {
+      console.error("Error adding event:", error);
+      alert("Error adding event. Please try again.");
+    }
+  };
 
   const navigateMonth = (direction: 'next' | 'prev'): void => {
     setCurrentDate(direction === "next" ? addMonths(currentDate, 1) : subMonths(currentDate, 1));
@@ -54,56 +172,27 @@ const App: React.FC = () => {
     return eachDayOfInterval({ start, end });
   };
 
-  const handleEventSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    
-    if (!newEvent.title.trim()) {
-      alert("Please enter an event title");
-      return;
-    }
-
-    if (!newEvent.date) {
-      alert("Please select a date");
-      return;
-    }
-
-    try {
-      parseISO(newEvent.date);
-    } catch (error) {
-      alert("Invalid date format");
-      return;
-    }
-
-    const eventToAdd: Event = {
-      ...newEvent,
-      id: Date.now(),
-      title: newEvent.title.trim(),
-      description: newEvent.description.trim(),
-    };
-
-    setEvents(prevEvents => [...prevEvents, eventToAdd]);
-    
-    setNewEvent({
-      id: 0,
-      title: "",
-      date: format(new Date(), "yyyy-MM-dd"),
-      time: "",
-      description: "",
-      category: "default"
-    });
-    setShowEventForm(false);
-  };
-
   const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>): void => {
     if ((e.target as HTMLDivElement).classList.contains("modal-overlay")) {
       setShowEventForm(false);
     }
   };
 
+  if (!isLoaded) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!isSignedIn) {
+    return <div className="min-h-screen flex items-center justify-center">Please sign in to view the calendar</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="p-6 flex justify-between items-center border-b bg-white">
-        <h1 className="text-2xl font-bold text-gray-900">Your Calendar</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Student Calendar</h1>
+        <div className="text-sm text-gray-600">
+          View professor events and add your personal events
+        </div>
       </header>
 
       <main className="container mx-auto p-6">
@@ -130,8 +219,32 @@ const App: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <FiPlus size={20} />
-                Add Event
+                Add Personal Event
               </button>
+            </div>
+          </div>
+
+          {/* Calendar Legend */}
+          <div className="mb-4 flex flex-wrap gap-4">
+            <div className="text-sm flex items-center text-gray-900">
+              <span className="w-3 h-3 rounded-full bg-purple-100 border border-purple-300 mr-2"></span>
+              General Event
+            </div>
+            <div className="text-sm flex items-center text-gray-900">
+              <span className="w-3 h-3 rounded-full bg-red-100 border border-red-300 mr-2"></span>
+              Assignment
+            </div>
+            <div className="text-sm flex items-center text-gray-900">
+              <span className="w-3 h-3 rounded-full bg-blue-100 border border-blue-300 mr-2"></span>
+              Lecture
+            </div>
+            <div className="text-sm flex items-center text-gray-900">
+              <span className="w-3 h-3 rounded-full bg-orange-100 border border-orange-300 mr-2"></span>
+              Exam
+            </div>
+            <div className="text-sm flex items-center text-gray-900">
+              <span className="w-3 h-3 rounded-full bg-green-100 border border-green-300 mr-2"></span>
+              Personal Event
             </div>
           </div>
 
@@ -158,11 +271,14 @@ const App: React.FC = () => {
                     {dayEvents.map((event) => (
                       <div
                         key={event.id}
-                        className="mt-1 p-1 text-xs bg-blue-100 rounded truncate"
-                        title={event.title}
+                        className={`mt-1 p-1 text-xs rounded truncate ${getEventStyle(event)}`}
+                        title={`${event.title}${event.description ? ` - ${event.description}` : ''}`}
                       >
                         {event.time && <span className="mr-1">{event.time}</span>}
                         {event.title}
+                        <div className="text-xs opacity-75">
+                          {event.creatorRole === 'professor' ? '(Professor)' : '(Personal)'}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -178,7 +294,7 @@ const App: React.FC = () => {
             onClick={handleClickOutside}
           >
             <div className="bg-white p-6 rounded-lg w-full max-w-md">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">Add New Event</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Add Personal Event</h3>
               <form onSubmit={handleEventSubmit}>
                 <div className="mb-4">
                   <label htmlFor="title" className="block mb-2 text-gray-700">Title *</label>
@@ -246,4 +362,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default StudentCalendar;
