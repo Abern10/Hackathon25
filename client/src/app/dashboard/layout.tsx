@@ -1,62 +1,46 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import { getUserDataFromFirebase, createUserInFirebase } from "@/lib/firebaseHelpers";
+import { useRouter } from "next/navigation";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import Sidebar from "@/components/Sidebar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const { user, isSignedIn } = useUser();
-    const [userData, setUserData] = useState<any>(null);
+    const { user } = useUser();
+    const router = useRouter();
 
     useEffect(() => {
-        if (!isSignedIn || !user) return;
-
-        const fetchUserData = async () => {
-            const clerkUserId = user.id;
-            const role = user.publicMetadata?.role;
-
-            if (!role) {
-                console.log("No role assigned to user.");
+        const checkUserRole = async () => {
+            if (!user) {
+                router.push('/sign-in');
                 return;
             }
 
-            // Check if user exists in Firebase
-            let firebaseUser = await getUserDataFromFirebase(clerkUserId, role);
-            if (!firebaseUser) {
-                await createUserInFirebase(clerkUserId, role, {
-                    name: user.fullName,
-                    email: user.primaryEmailAddress,
-                });
-
-                firebaseUser = await getUserDataFromFirebase(clerkUserId, role);
+            // Check professor collection first
+            const professorDoc = await getDoc(doc(db, 'professors', user.id));
+            if (professorDoc.exists()) {
+                return; // User is a professor, allow access
             }
 
-            setUserData(firebaseUser);
+            // If not a professor, check student collection
+            const studentDoc = await getDoc(doc(db, 'students', user.id));
+            if (studentDoc.exists()) {
+                return; // User is a student, allow access
+            }
+
+            // If user is neither professor nor student, redirect to sign-in
+            router.push('/sign-in');
         };
 
-        fetchUserData();
-    }, [isSignedIn, user]);
+        checkUserRole();
+    }, [user, router]);
 
     return (
         <div className="flex h-screen overflow-hidden">
-            {/* Sidebar stays full height */}
             <Sidebar />
-            {/* Allow vertical scrolling on the main content */}
             <main className="flex-1 bg-white overflow-y-auto p-6">
-                {!userData ? (
-                    <p className="text-center text-gray-600">Loading user data...</p>
-                ) : (
-                    <div className="mb-4">
-                        <h1 className="text-2xl font-semibold text-gray-900">
-                            Welcome, {userData.name}!
-                        </h1>
-                        <p className="text-gray-700">Role: {user.publicMetadata?.role}</p>
-                        <p className="text-gray-700">
-                            Courses: {userData.access.courses.join(", ") || "No courses assigned yet"}
-                        </p>
-                    </div>
-                )}
                 {children}
             </main>
         </div>
