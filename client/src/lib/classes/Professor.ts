@@ -4,7 +4,7 @@ export class Professor {
         private uin: number,
         private name: string,
         private email: string,
-        private access: number
+        private access: object
     ) {}
 
     // setter functions
