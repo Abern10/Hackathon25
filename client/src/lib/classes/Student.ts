@@ -1,40 +1,40 @@
+import { db } from "../firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+
 export class Student {
-    // unique fields to identify a student
-    constructor(
-        private uin: number,
-        private name: string,
-        private email: string,
-        private access: object
-    ) {}
+  constructor(
+    public uin: number,
+    public name: string,
+    public email: string,
+    public access: object
+  ) {}
 
-    // setter functions
-    public setUin(uin: number): void {
-        this.uin = uin;
-    }
-    
-    public setName(name: string): void {
-        this.name = name;
-    }
+  // Convert object to Firestore format
+  toFirestore() {
+    return {
+      uin: this.uin,
+      name: this.name,
+      email: this.email,
+      access: this.access
+    };
+  }
 
-    public setEmail(email: string): void {
-        this.email = email;
-    }
+  // Save to Firestore
+  async saveToFirestore(): Promise<void> {
+    const studentRef = doc(db, "students", this.uin.toString());
+    await setDoc(studentRef, this.toFirestore());
+  }
 
-    // getter functions
-    public getUin(): number {
-        return this.uin;
-    }
+  // Fetch Student from Firestore
+  static async fetchFromFirestore(uin: number): Promise<Student | null> {
+    const studentRef = doc(db, "students", uin.toString());
+    const studentSnap = await getDoc(studentRef);
 
-    public getName(): string {
-        return this.name;
+    if (studentSnap.exists()) {
+      const data = studentSnap.data();
+      return new Student(data.uin, data.name, data.email, data.access);
+    } else {
+      return null;
     }
-
-    public getEmail(): string {
-        return this.email;
-    }
-
-    // can only get access instead of setting it
-    public getAccess(): object {
-        return this.access;
-    }
+  }
 }
