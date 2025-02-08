@@ -71,7 +71,7 @@ export default function Sidebar() {
                     Profile
                   </Link>
                 </li>
-              </>   
+              </>
             ) : (
               <>
                 <li>
@@ -104,7 +104,7 @@ export default function Sidebar() {
                     Profile
                   </Link>
                 </li>
-              </>   
+              </>
             )}
           </ul>
         </nav>
@@ -112,7 +112,7 @@ export default function Sidebar() {
 
       {/* Clerk User Button (Profile & Logout) */}
       <div className="border-t border-gray-600 pt-4">
-        <UserButton afterSignOutUrl="/" />
+        <UserButton afterSignOutUrl={typeof window !== "undefined" ? window.location.origin : "/"} />
       </div>
     </aside>
   );
