@@ -8,6 +8,10 @@ import { cn } from "@/lib/utils"
 import React from "react"
 import { IconBrandGoogle } from "@tabler/icons-react"
 import { useRouter } from "next/navigation";
+import { Student } from "@/lib/classes/Student"
+import { Professor } from "@/lib/classes/Professor"
+import { db } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 export default function SignUpPage() {
     const router = useRouter();
@@ -21,6 +25,7 @@ export default function SignUpPage() {
     const [code, setCode] = useState('')
     const { isLoaded, signUp, setActive } = useSignUp()
     const [selectedRole, setSelectedRole] = useState<'professor' | 'student' | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -67,11 +72,14 @@ export default function SignUpPage() {
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log("handleVerify called with role:", selectedRole)
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        setError("");
     
         if (!isLoaded) {
-            console.log("Clerk is not loaded yet")
-            return
+            setError("System is not ready. Please try again.");
+            setIsSubmitting(false);
+            return;
         }
     
         try {
@@ -79,54 +87,62 @@ export default function SignUpPage() {
                 code,
             })
             
-            if (completeSignUp.status === 'complete') {
-                await setActive({ session: completeSignUp.createdSessionId })
-                
-                // Get user ID from completeSignUp
-                const userId = completeSignUp.createdUserId
-                console.log("Created user ID:", userId)
-                
-                if (!userId) {
-                    console.error("No user ID found")
-                    setError("Error: User ID not found. Please try again.")
-                    return
-                }
-    
-                try {
-                    const payload = {
-                        role: selectedRole,
-                        userId: userId
-                    }
-                    console.log("Sending payload with validated user ID:", payload)
-    
-                    const response = await fetch('/api/public', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(payload)
-                    });
-    
-                    const responseData = await response.json()
-                    console.log("Response data:", responseData)
-    
-                    if (!response.ok) {
-                        throw new Error(responseData.error || 'Failed to update role')
-                    }
-    
-                    if (selectedRole === 'professor') {
-                        router.push('/dashboard/professorHomePage')
-                    } else {
-                        router.push('/dashboard/studentHomePage')
-                    }
-                } catch (error) {
-                    console.error("Error updating role:", error)
-                    setError("Error setting user role. Please try again.")
-                }
+            if (completeSignUp.status !== 'complete') {
+                throw new Error('Verification incomplete');
             }
+    
+            const userId = completeSignUp.createdUserId;
+            if (!userId) {
+                throw new Error('No user ID received from verification');
+            }
+    
+            // Set the active session
+            await setActive({ session: completeSignUp.createdSessionId })
+            
+            // Create the appropriate user object based on role
+            let userObj;
+            const access = { role: selectedRole }; // Basic access object
+            
+            if (selectedRole === 'student') {
+                userObj = new Student(
+                    Math.floor(Math.random() * 1000000), // Temporary UIN - you might want to generate this differently
+                    `${firstName} ${lastName}`,
+                    emailAddress,
+                    access
+                );
+            } else {
+                userObj = new Professor(
+                    Math.floor(Math.random() * 1000000), // Temporary UIN
+                    `${firstName} ${lastName}`,
+                    emailAddress,
+                    access
+                );
+            }
+
+            // Create user document in Firebase
+            const userDoc = {
+                uin: userObj.getUin(),
+                name: userObj.getName(),
+                email: userObj.getEmail(),
+                access: userObj.getAccess(),
+                userId: userId, // Store Clerk user ID for reference
+                role: selectedRole,
+                createdAt: new Date().toISOString()
+            };
+
+            // Save to Firebase
+            await setDoc(doc(db, selectedRole === 'student' ? 'students' : 'professors', userId), userDoc);
+            
+            // Redirect based on role
+            router.push(selectedRole === 'professor' 
+                ? '/dashboard/professorHomePage' 
+                : '/dashboard/studentHomePage'
+            );
+            
         } catch (err: any) {
             console.error("Error during verification:", err)
             setError(err.message || "An error occurred during verification")
+            setIsSubmitting(false);
         }
     }
 

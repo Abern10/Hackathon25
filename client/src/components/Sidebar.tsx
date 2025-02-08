@@ -61,7 +61,7 @@ export default function Sidebar() {
 
       {/* Clerk User Button (Profile & Logout) */}
       <div className="border-t border-gray-600 pt-4">
-        <UserButton afterSignOutUrl="/auth" />
+        <UserButton afterSignOutUrl="/" />
       </div>
     </aside>
   );

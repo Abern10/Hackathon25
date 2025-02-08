@@ -8,6 +8,8 @@ import React from "react"
 import { IconBrandGoogle } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
+import { db } from "@/lib/firebase"
+import { doc, getDoc } from "firebase/firestore"
 
 export default function SignInPage() {
     const router = useRouter();
@@ -15,27 +17,51 @@ export default function SignInPage() {
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const { isLoaded, signIn, setActive } = useSignIn();
-    const { user } = useUser();  // Add this hook
+    const { user } = useUser();
 
-    // useEffect(() => {
-    //     if (user) {
-    //         router.push('/');
-    //     }
-    // }, [user, router]);
+    const checkRoleAndRedirect = async (userId: string) => {
+        try {
+            // Get the user document from either collection
+            const userDoc = await getDoc(doc(db, 'professors', userId));
+            if (!userDoc.exists()) {
+                const studentDoc = await getDoc(doc(db, 'students', userId));
+                if (!studentDoc.exists()) {
+                    throw new Error('User not found');
+                }
+                const data = studentDoc.data();
+                if (data.access?.role === 'student') {
+                    router.push('/dashboard/studentHomePage');
+                    return;
+                }
+            } else {
+                const data = userDoc.data();
+                if (data.access?.role === 'professor') {
+                    router.push('/dashboard/professorHomePage');
+                    return;
+                }
+            }
+            throw new Error('Invalid role');
+        } catch (err) {
+            console.error("Error checking role:", err);
+            setError("Error determining user role. Please try again.");
+        }
+    };
 
-
-    if (!isLoaded) {
-        return <div>Loading...</div>
-    }
+    // Use effect to check role and redirect when user is available
+    useEffect(() => {
+        if (user) {
+            checkRoleAndRedirect(user.id);
+        }
+    }, [user]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        setError("")
     
         if (!isLoaded) {
-          return
+            return
         }
     
-        // Start the sign-in process using the email and password provided
         try {
             const result = await signIn.create({
                 identifier: email,
@@ -45,8 +71,7 @@ export default function SignInPage() {
             if (result.status === "complete") {
                 console.log("Sign in successful")
                 await setActive({ session: result.createdSessionId })
-                // Redirect or update UI as needed
-                router.push('/')
+                // The useEffect will handle redirect once user is available
             } else {
                 console.log("Sign in failed", result)
                 setError("Sign in failed. Please check your credentials.")
