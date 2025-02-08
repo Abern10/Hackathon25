@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import { IconBell, IconBook, IconClipboard, IconFolder } from '@tabler/icons-react';
+import { IconBell, IconBook, IconClipboard, IconFolder, IconAlignBoxBottomCenter } from '@tabler/icons-react';
 
 interface Tab {
   id: string;
@@ -18,10 +18,10 @@ const defaultTabs: Tab[] = [
     icon: <IconBell className="w-5 h-5" />,
     content: (
       <div className="p-6">
-        <h2 className="text-2xl font-semibold mb-4">Announcements</h2>
+        <h2 className="text-center text-3xl font-semibold mb-4 text-black">Announcement</h2>
         <div className="border-b pb-4 mb-4">
-          <div className="text-sm text-gray-500">2025-02-08</div>
-          <p className="mt-2">Welcome to the course! Please review the syllabus.</p>
+          <div className="text-center text-sm text-black">2025-02-08</div>
+          <p className="mt-2 text-black">Welcome to the course! Please review the syllabus.</p>
         </div>
       </div>
     )
@@ -32,8 +32,8 @@ const defaultTabs: Tab[] = [
     icon: <IconBook className="w-5 h-5" />,
     content: (
       <div className="p-6">
-        <h2 className="text-2xl font-semibold mb-4">Syllabus</h2>
-        <div>Syllabus content goes here</div>
+        <h2 className="text-2xl font-semibold mb-4 text-black">Syllabus</h2>
+        <div className="text-black">Syllabus content goes here</div>
       </div>
     )
   },
@@ -43,8 +43,8 @@ const defaultTabs: Tab[] = [
     icon: <IconClipboard className="w-5 h-5" />,
     content: (
       <div className="p-6">
-        <h2 className="text-2xl font-semibold mb-4">Assignments</h2>
-        <div>Assignments content goes here</div>
+        <h2 className="text-2xl font-semibold mb-4 text-black">Assignments</h2>
+        <div className="text-black">Assignments content goes here</div>
       </div>
     )
   },
@@ -54,8 +54,19 @@ const defaultTabs: Tab[] = [
     icon: <IconFolder className="w-5 h-5" />,
     content: (
       <div className="p-6">
-        <h2 className="text-2xl font-semibold mb-4">Modules</h2>
-        <div>Course modules content goes here</div>
+        <h2 className="text-2xl font-semibold mb-4 text-black">Modules</h2>
+        <div className="text-black">Course modules content goes here</div>
+      </div>
+    )
+  },
+  {
+    id: 'Grades',
+    label: 'Grades',
+    icon: <IconAlignBoxBottomCenter className="w-5 h-5" />,
+    content: (
+      <div className="p-6">
+        <h2 className="text-2xl font-semibold mb-4 text-black">Grades</h2>
+        <div className="text-black">grades modules content goes here</div>
       </div>
     )
   }
@@ -67,17 +78,17 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Course Header */}
-      <header className="bg-gray-800 text-white p-6">
+      <header className="bg-white p-6 border-b">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-center text-3xl font-bold">Introduction to Data Science</h1>
-          <p className="text-center text-lg mt-2">CS 418</p>
+          <h1 className="text-center text-5xl font-bold text-black">Introduction to Data Science</h1>
+          <p className="text-center text-lg mt-2 text-black">CS 418</p>
         </div>
       </header>
 
       {/* Main Content with Sidebar */}
       <div className="flex flex-1">
         {/* Vertical Tab Navigation */}
-        <nav className="w-64 bg-white text-white">
+        <nav className="w-64 bg-white border-r">
           <div className="p-4">
             {defaultTabs.map((tab) => (
               <button
@@ -87,8 +98,8 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                   w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left
                   transition-colors duration-150 ease-in-out
                   ${activeTab === tab.id 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-300 hover:bg-gray-800'}
+                    ? 'bg-gray-100 text-black font-semibold' 
+                    : 'text-black hover:bg-gray-50'}
                 `}
               >
                 {tab.icon}
