@@ -41,6 +41,11 @@ export default function Sidebar() {
               </Link>
             </li>
             <li>
+              <Link href="/dashboard/calendar" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                Calendar
+              </Link>
+            </li>
+            <li>
               <Link href="/dashboard/grades" className="block px-4 py-2 rounded-md hover:bg-gray-700">
                 Grades
               </Link>
