@@ -11,6 +11,7 @@ import {
   IconChevronDown,
   IconClipboard,
   IconCalendar,
+  IconUserPlus,
 } from '@tabler/icons-react';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -540,7 +541,7 @@ export default function CoursePage({ params }: { params: Promise<{ id: string }>
               <p className="text-center text-lg mt-2 text-black">{courseCode}</p>
             </>
           )}
-        </div>
+        </div>  
         <button
           onClick={() => {
             setIsEditing(!isEditing); // Toggle editing mode
