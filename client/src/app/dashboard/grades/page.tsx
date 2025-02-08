@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { IconArrowLeft, IconClock } from '@tabler/icons-react';
 import Link from 'next/link';
@@ -23,11 +26,48 @@ const fetchCourses = async (): Promise<Course[]> => {
       toGrade: 434,
       totalAssignments: 96,
     },
+    {
+      id: "cs101",
+      code: "2025.fall.cs.101.12345",
+      name: "CS 101 Introduction to Computer Science",
+      term: "2025 Fall",
+      finalGrade: "A",
+      toGrade: 500,
+      totalAssignments: 80,
+    },
+    {
+      id: "cs420",
+      code: "2025.spring.cs.420.54321",
+      name: "CS 420 Advanced Data Science",
+      term: "2025 Spring",
+      finalGrade: null,
+      toGrade: 600,
+      totalAssignments: 100,
+    },
   ];
 };
 
-export default async function GradesPage() {
-  const courses = await fetchCourses(); // Fetch courses
+export default function GradesPage() {
+  const [semesterFilter, setSemesterFilter] = useState<string>("All");
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  // Fetch courses once
+  useEffect(() => {
+    const loadCourses = async () => {
+      const fetchedCourses = await fetchCourses();
+      setCourses(fetchedCourses);
+    };
+    loadCourses();
+  }, []);
+
+  // Filter courses based on the selected semester
+  const filteredCourses = courses.filter(course => {
+    if (semesterFilter === "All") {
+      return true;
+    }
+    const semesterCode = course.code.split('.')[0] + '.' + course.code.split('.')[1]; // Extracts "2025.spring" from "2025.spring.cs.418.43230"
+    return semesterCode === semesterFilter;
+  });
 
   return (
     <div className="bg-white h-full w-full">
@@ -42,9 +82,23 @@ export default async function GradesPage() {
         <h2 className="text-lg font-medium text-black">Current Courses and Organizations</h2>
       </div>
 
+      {/* Semester Filter */}
+      <div className="p-4 text-center">
+        <select
+          className="border p-2 rounded-md"
+          value={semesterFilter}
+          onChange={(e) => setSemesterFilter(e.target.value)}
+        >
+          <option value="All">All Semesters</option>
+          <option value="2025.spring">Spring 2025</option>
+          <option value="2025.fall">Fall 2025</option>
+          {/* Add other semesters here */}
+        </select>
+      </div>
+
       {/* Course List */}
       <div className="p-6 space-y-4">
-        {courses.map((course) => (
+        {filteredCourses.map((course) => (
           <div key={course.id} className="border rounded-lg shadow-sm">
             {/* Course Header */}
             <div className="bg-gray-100 p-4 border-b">
