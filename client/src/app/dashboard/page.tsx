@@ -1,4 +1,3 @@
-// src/app/dashboard/page.tsx
 import { redirect } from 'next/navigation';
 import { currentUser } from '@clerk/nextjs/server';
 
@@ -6,7 +5,7 @@ export default async function DashboardPage() {
   const user = await currentUser();
 
   if (!user) {
-    redirect('/signIn'); // Redirect if not signed in
+    redirect('/auth'); // Redirect to login if not signed in
   }
 
   const role = user.publicMetadata?.role;
