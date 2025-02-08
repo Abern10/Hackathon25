@@ -52,16 +52,6 @@ export default function Sidebar() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/dashboard/professorHomePage" className="block px-4 py-2 rounded-md hover:bg-gray-700">
-                    Home
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/professorCourses" className="block px-4 py-2 rounded-md hover:bg-gray-700">
-                    Courses
-                  </Link>
-                </li>
-                <li>
                   <Link href="/dashboard/professorCalendar" className="block px-4 py-2 rounded-md hover:bg-gray-700">
                     Calendar
                   </Link>
@@ -84,11 +74,6 @@ export default function Sidebar() {
               </>   
             ) : (
               <>
-                <li>
-                  <Link href="/dashboard/studentHomePage" className="block px-4 py-2 rounded-md hover:bg-gray-700">
-                    Home
-                  </Link>
-                </li>
                 <li>
                   <Link href="/dashboard/studentHomePage" className="block px-4 py-2 rounded-md hover:bg-gray-700">
                     Home
