@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs"; // ✅ Get user info from Clerk
-import "@/styles/studentHome.css"; // ✅ Import Tailwind styles
+import { useUser } from "@clerk/nextjs";
+import "@/styles/studentHome.css";
 
 export default function StudentHomePage() {
-  const { user } = useUser(); // ✅ Get user data
+  const { user } = useUser();
 
   // Function to determine the greeting based on time of day
   const getGreeting = () => {
@@ -96,7 +96,7 @@ export default function StudentHomePage() {
 
       {/* Weekly Schedule Section */}
       <div className="weekly-schedule-container">
-        <h2 className="weekly-schedule-title">Weekly Class Schedule</h2>
+        <h2 className="section-title">Weekly Class Schedule</h2>
         {weeklySchedule.length > 0 ? (
           weeklySchedule.map((classTime) => (
             <div key={classTime.id} className="schedule-item">

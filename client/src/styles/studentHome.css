@@ -6,12 +6,12 @@
 
 /* Student Home Container */
 .student-home-container {
-  @apply max-w-6xl mx-auto px-6 py-8; /* Centers content */
+  @apply max-w-6xl mx-auto px-6 py-8;
 }
 
 /* Semester Title */
 .semester-title {
-  @apply text-4xl font-bold mb-8 text-gray-900; /* Bigger text, minimal style */
+  @apply text-4xl font-bold mb-8 text-gray-900;
 }
 
 /* Personalized Greeting */
@@ -19,24 +19,29 @@
   @apply text-2xl font-semibold text-gray-800 mb-4;
 }
 
-/* Section Container (for Notifications & Assignments) */
+/* Section Container (for Announcements, Assignments, and Weekly Schedule) */
 .section-container {
-  @apply bg-white shadow-md rounded-lg p-6 mb-6 border border-gray-200; /* Minimalist card UI */
+  @apply bg-white shadow-md rounded-lg p-6 mb-6 border border-gray-200 transition-all duration-300;
+}
+
+/* Hover Effect (Subtle Animation) */
+.section-container:hover {
+  @apply bg-gray-50 border-l-4 border-gray-500 shadow-md;
 }
 
 /* Section Title */
 .section-title {
-  @apply text-2xl font-semibold text-gray-800 mb-4;
+  @apply text-2xl font-semibold text-gray-900 mb-4;
 }
 
-/* Notification Item */
+/* Announcement Items */
 .notification-item {
-  @apply p-4 bg-gray-100 rounded-lg mb-2 text-gray-700;
+  @apply flex justify-between p-4 bg-gray-50 rounded-lg mb-2 border border-gray-200 text-gray-900;
 }
 
 /* Assignments List */
 .assignment-item {
-  @apply flex justify-between p-4 bg-gray-50 rounded-lg mb-2;
+  @apply flex justify-between p-4 bg-gray-50 rounded-lg mb-2 border border-gray-200 transition-all duration-300;
 }
 
 .assignment-course {
@@ -47,17 +52,14 @@
   @apply text-gray-600 text-sm;
 }
 
-/* Weekly Schedule Section (Now matches other sections) */
+/* Weekly Schedule Section */
 .weekly-schedule-container {
-  @apply p-6 bg-gray-50 border-l-4 border-gray-300 text-gray-900 rounded-md shadow;
+  @apply section-container;
 }
 
-.weekly-schedule-title {
-  @apply text-2xl font-semibold text-gray-800 mb-4;
-}
-
+/* Weekly Schedule Items */
 .schedule-item {
-  @apply flex justify-between p-4 bg-white rounded-lg mb-2 border border-gray-200;
+  @apply flex justify-between p-4 bg-gray-50 rounded-lg mb-2 border border-gray-200 transition-all duration-300;
 }
 
 .schedule-course {
