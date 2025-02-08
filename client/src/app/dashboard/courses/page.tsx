@@ -1,77 +1,97 @@
-// src/app/dashboard/page.tsx
 import Image from "next/image";
+import Link from "next/link";
+import { IconList, IconBlocks, IconSearch, IconSettings } from '@tabler/icons-react';
+
+// Define course type
+interface Course {
+  id: string;
+  code: string;
+  title: string;
+  status: string;
+  instructor: string;
+  starred: boolean;
+}
+
+// Mock course data
+const courses: Course[] = [
+  {
+    id: "43230",
+    code: "2025.spring.cs.418.43230",
+    title: "CS 418 Introduction to Data Science",
+    status: "Open",
+    instructor: "Instructor Name",
+    starred: true
+  },
+  // Add more courses as needed
+];
 
 export default function Home() {
   return (
     <div className="bg-white h-full w-full">
       <div className="p-8">
         {/* Header */}
-        <h1 className="text-3xl mb-8">My Courses</h1>
-
+        <h1 className="text-3xl mb-8 text-black text-center">MY COURSES</h1>
+        
         {/* Controls Bar */}
         <div className="flex flex-wrap gap-4 items-center mb-6">
           {/* View Toggle */}
           <div className="flex border rounded">
-            <button className="p-2">
-              ≡ {/* List icon */}
+            <button className="p-2 text-black">
+              <IconList/>
             </button>
-            <button className="p-2">
-              ▤ {/* Grid icon */}
+            <button className="p-2 text-black">
+              <IconBlocks/>
             </button>
           </div>
-
+          
           {/* Search */}
-          <div className="flex-grow">
+          <div className="flex-grow relative">
             <input
               type="text"
               placeholder="Search your courses"
-              className="w-full px-4 py-2 border rounded"
+              className="w-full px-4 py-2 border rounded text-black placeholder-black"
             />
+            <IconSearch className="absolute right-3 top-1/2 transform -translate-y-1/2" />
           </div>
-
+          
           {/* Dropdown Filters */}
-          <select className="border rounded px-4 py-2">
+          <select className="border rounded px-4 py-2 text-black">
             <option>Current Courses</option>
           </select>
-
-          <select className="border rounded px-4 py-2">
-            <option>All courses</option>
-          </select>
-
-          {/* Items per page */}
-          <div className="flex items-center gap-2">
-            <select className="border rounded px-3 py-2">
-              <option>25</option>
-            </select>
-            <span>items per page</span>
-          </div>
+          
+          <button>
+            <IconSettings/>
+          </button>
         </div>
-
+        
         {/* Results Count */}
         <div className="mb-6">
-          <span>7 results</span>
+          <span className="text-black">{courses.length} results</span>
           <button className="ml-4 px-4 py-1 rounded-full bg-gray-800 text-white text-sm">
             Current Courses
           </button>
         </div>
-
+        
         {/* Course Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Sample Course Card */}
-          <div className="border rounded-lg overflow-hidden shadow-sm">
-            <div className="h-48 bg-gray-200"></div>
-            <div className="p-4">
-              <div className="text-sm text-gray-600 mb-2">2025.spring.cs.418.43230</div>
-              <h3 className="font-semibold mb-2">CS 418 Introduction to Data Science</h3>
-              <div className="text-gray-600 mb-2">Open</div>
-              <div className="flex justify-between items-center">
-                <span>Instructor Name</span>
-                <span>★</span>
+          {courses.map((course) => (
+            <Link 
+              href={`courses/class/${course.id}`} 
+              key={course.id}
+              className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+            >
+              <div className="h-48 bg-gray-200"></div>
+              <div className="p-4">
+                <div className="text-sm text-black mb-2">{course.code}</div>
+                <h3 className="font-semibold mb-2 text-black">{course.title}</h3>
+                <div className="text-black mb-2">{course.status}</div>
+                <div className="flex justify-between items-center text-black">
+                  <span>{course.instructor}</span>
+                  <span>{course.starred ? '★' : '☆'}</span>
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Add more course cards as needed */}
+            </Link>
+          ))}
         </div>
       </div>
     </div>
