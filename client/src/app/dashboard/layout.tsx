@@ -1,6 +1,6 @@
 // src/app/dashboard/layout.tsx
 import React from 'react';
-import Sidebar from '@/components/Sidebar'; // Adjust import based on your structure
+import Sidebar from '@/components/Sidebar';
 
 export default function DashboardLayout({
   children,
@@ -8,12 +8,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Persistent Sidebar */}
+    <div className="flex min-h-screen">
       <Sidebar />
-      
-      {/* Main Content that changes based on route */}
-      <main style={{ flex: 1, padding: '1rem' }}>
+      <main className="flex-1 bg-white">
         {children}
       </main>
     </div>
