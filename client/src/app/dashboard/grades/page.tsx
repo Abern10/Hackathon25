@@ -1,18 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
-import { IconArrowLeft, IconClock } from '@tabler/icons-react';
-import Link from 'next/link';
+import { IconArrowLeft, IconClock, IconBook, IconMessageCircle } from "@tabler/icons-react";
+import Link from "next/link";
+
+interface Assignment {
+  name: string;
+  grade: number | null;
+  totalPoints: number;
+  dueDate: string;
+}
 
 interface Course {
   id: string;
   code: string;
   name: string;
   term: string;
-  finalGrade: string | null;
-  toGrade: number;
-  totalAssignments: number;
+  earnedPoints: number;
+  totalPoints: number;
+  assignments: Assignment[];
 }
 
 const fetchCourses = async (): Promise<Course[]> => {
@@ -22,27 +28,25 @@ const fetchCourses = async (): Promise<Course[]> => {
       code: "2025.spring.cs.418.43230",
       name: "CS 418 Introduction to Data Science",
       term: "2025 Spring",
-      finalGrade: "B",
-      toGrade: 434,
-      totalAssignments: 96,
+      earnedPoints: 11.5,
+      totalPoints: 12,
+      assignments: [
+        { name: "Quiz 3", grade: 3.5, totalPoints: 4, dueDate: "2025-02-02" },
+        { name: "Quiz 4", grade: null, totalPoints: 4, dueDate: "2025-02-11" },
+      ],
     },
     {
       id: "cs101",
-      code: "2025.fall.cs.101.12345",
+      code: "2024.fall.cs.101.12345",
       name: "CS 101 Introduction to Computer Science",
-      term: "2025 Fall",
-      finalGrade: "A",
-      toGrade: 500,
-      totalAssignments: 80,
-    },
-    {
-      id: "cs420",
-      code: "2025.spring.cs.420.54321",
-      name: "CS 420 Advanced Data Science",
-      term: "2025 Spring",
-      finalGrade: null,
-      toGrade: 600,
-      totalAssignments: 100,
+      term: "2024 Fall",
+      earnedPoints: 20,
+      totalPoints: 20,
+      assignments: [
+        { name: "Quiz 4", grade: 20, totalPoints: 20, dueDate: "2024-10-06" },
+        { name: "Quiz 5", grade: null, totalPoints: 20, dueDate: "2024-10-14" },
+        { name: "Discussion 5: To listen or not to listen.", grade: null, totalPoints: 0, dueDate: "2024-10-14" },
+      ],
     },
   ];
 };
@@ -51,7 +55,6 @@ export default function GradesPage() {
   const [semesterFilter, setSemesterFilter] = useState<string>("All");
   const [courses, setCourses] = useState<Course[]>([]);
 
-  // Fetch courses once
   useEffect(() => {
     const loadCourses = async () => {
       const fetchedCourses = await fetchCourses();
@@ -60,12 +63,9 @@ export default function GradesPage() {
     loadCourses();
   }, []);
 
-  // Filter courses based on the selected semester
-  const filteredCourses = courses.filter(course => {
-    if (semesterFilter === "All") {
-      return true;
-    }
-    const semesterCode = course.code.split('.')[0] + '.' + course.code.split('.')[1]; // Extracts "2025.spring" from "2025.spring.cs.418.43230"
+  const filteredCourses = courses.filter((course) => {
+    if (semesterFilter === "All") return true;
+    const semesterCode = course.code.split(".")[0] + "." + course.code.split(".")[1];
     return semesterCode === semesterFilter;
   });
 
@@ -77,58 +77,88 @@ export default function GradesPage() {
         <h1 className="text-3xl font-semibold text-black">My Grades</h1>
       </div>
 
-      {/* Section Header */}
+      {/* Semester Filter */}
       <div className="p-4 text-center border-b">
         <h2 className="text-lg font-medium text-black">Current Courses and Organizations</h2>
-      </div>
-
-      {/* Semester Filter */}
-      <div className="p-4 text-center">
         <select
-          className="border p-2 rounded-md"
+          className="border p-2 rounded-md mt-2"
           value={semesterFilter}
           onChange={(e) => setSemesterFilter(e.target.value)}
         >
           <option value="All">All Semesters</option>
           <option value="2025.spring">Spring 2025</option>
-          <option value="2025.fall">Fall 2025</option>
-          {/* Add other semesters here */}
+          <option value="2024.fall">Fall 2024</option>
         </select>
       </div>
 
       {/* Course List */}
-      <div className="p-6 space-y-4">
+      <div className="p-6 space-y-6">
         {filteredCourses.map((course) => (
           <div key={course.id} className="border rounded-lg shadow-sm">
             {/* Course Header */}
-            <div className="bg-gray-100 p-4 border-b">
-              <p className="text-sm text-gray-500">{course.code}</p>
-              <h3 className="text-lg font-semibold text-black">{course.name}</h3>
-            </div>
-
-            {/* Grade Section */}
-            <div className="p-4 flex justify-between items-center">
+            <div className="p-4 bg-gray-100 border-b flex justify-between items-center">
+              <div>
+                <p className="text-sm text-gray-500">{course.code}</p>
+                <h3 className="text-lg font-semibold text-gray-800">{course.name}</h3>
+              </div>
               <div className="flex items-center space-x-2">
                 <IconClock className="w-5 h-5 text-gray-500" />
-                <span className="text-sm font-medium text-black">Final Grade</span>
-              </div>
-              <span className="text-sm font-semibold text-black">No Category</span>
-              <span className="text-sm font-semibold text-gray-700">
-                {course.toGrade} to grade
-              </span>
-              {course.finalGrade ? (
-                <span className="px-3 py-1 text-sm font-bold bg-lime-300 rounded-lg">
-                  {course.finalGrade}
+                <span
+                  className={`px-3 py-1 text-sm font-bold rounded-lg ${
+                    course.earnedPoints === course.totalPoints
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {course.earnedPoints} / {course.totalPoints}
                 </span>
-              ) : (
-                <span className="text-sm text-gray-400">-</span>
-              )}
+              </div>
+            </div>
+
+            {/* Recent Grades */}
+            <div className="p-4">
+              <h4 className="text-md font-semibold text-gray-800">Recent Grades</h4>
+              <div className="space-y-2 mt-2">
+                {course.assignments
+                  .filter((a) => a.grade !== null)
+                  .map((assignment, index) => (
+                    <div key={index} className="flex justify-between items-center text-gray-700">
+                      <div className="flex items-center space-x-2">
+                        <IconBook className="w-5 h-5 text-gray-500" />
+                        <span>{assignment.name}</span>
+                      </div>
+                      <span className="text-sm">{assignment.grade} / {assignment.totalPoints}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* What's Next */}
+            <div className="p-4 border-t">
+              <h4 className="text-md font-semibold text-gray-800">What's Next</h4>
+              <div className="space-y-2 mt-2">
+                {course.assignments
+                  .filter((a) => a.grade === null)
+                  .map((assignment, index) => (
+                    <div key={index} className="flex justify-between items-center text-gray-700">
+                      <div className="flex items-center space-x-2">
+                        {assignment.name.startsWith("Discussion") ? (
+                          <IconMessageCircle className="w-5 h-5 text-gray-500" />
+                        ) : (
+                          <IconBook className="w-5 h-5 text-gray-500" />
+                        )}
+                        <span>{assignment.name}</span>
+                      </div>
+                      <span className="text-sm">Due: {assignment.dueDate}</span>
+                    </div>
+                  ))}
+              </div>
             </div>
 
             {/* View All Work */}
             <div className="p-4 border-t text-right">
               <Link href={`/courses/class/${course.id}`} className="text-blue-600 text-sm font-medium">
-                View all work ({course.totalAssignments})
+                View all work ({course.assignments.length})
               </Link>
             </div>
           </div>
