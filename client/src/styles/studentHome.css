@@ -6,12 +6,13 @@
 
 /* Student Home Container */
 .student-home-container {
-  @apply max-w-6xl mx-auto px-6 py-8;
+  @apply w-full max-w-6xl mx-auto px-6 py-8;
+  min-height: 100vh; /* Ensures proper height */
 }
 
 /* Semester Title */
 .semester-title {
-  @apply text-4xl font-bold mb-8 text-gray-900;
+  @apply text-4xl font-bold text-gray-900 mb-4;
 }
 
 /* Personalized Greeting */
@@ -19,12 +20,12 @@
   @apply text-2xl font-semibold text-gray-800 mb-4;
 }
 
-/* Section Container (for Announcements, Assignments, and Weekly Schedule) */
+/* Section Container */
 .section-container {
-  @apply bg-white shadow-md rounded-lg p-6 mb-6 border border-gray-200 transition-all duration-300;
+  @apply bg-white shadow-md rounded-lg p-6 border border-gray-200 transition-all duration-300 mb-6;
 }
 
-/* Hover Effect (Subtle Animation) */
+/* Hover Effect (Brings back subtle color and left border) */
 .section-container:hover {
   @apply bg-gray-50 border-l-4 border-gray-500 shadow-md;
 }
@@ -34,38 +35,15 @@
   @apply text-2xl font-semibold text-gray-900 mb-4;
 }
 
-/* Announcement Items */
-.notification-item {
+/* Items inside Sections */
+.notification-item,
+.assignment-item,
+.schedule-item {
   @apply flex justify-between p-4 bg-gray-50 rounded-lg mb-2 border border-gray-200 text-gray-900;
 }
 
-/* Assignments List */
-.assignment-item {
-  @apply flex justify-between p-4 bg-gray-50 rounded-lg mb-2 border border-gray-200 transition-all duration-300;
-}
-
-.assignment-course {
-  @apply font-medium text-gray-900;
-}
-
-.assignment-date {
-  @apply text-gray-600 text-sm;
-}
-
-/* Weekly Schedule Section */
-.weekly-schedule-container {
-  @apply section-container;
-}
-
-/* Weekly Schedule Items */
-.schedule-item {
-  @apply flex justify-between p-4 bg-gray-50 rounded-lg mb-2 border border-gray-200 transition-all duration-300;
-}
-
-.schedule-course {
-  @apply font-medium text-gray-900;
-}
-
+/* Date & Time Styling */
+.assignment-date,
 .schedule-time {
   @apply text-gray-600 text-sm;
 }

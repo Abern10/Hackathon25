@@ -1,6 +1,6 @@
 // src/app/dashboard/layout.tsx
-import React from 'react';
-import Sidebar from '@/components/Sidebar';
+import React from "react";
+import Sidebar from "@/components/Sidebar";
 
 export default function DashboardLayout({
   children,
@@ -8,9 +8,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar stays full height */}
       <Sidebar />
-      <main className="flex-1 bg-white">
+      {/* Allow vertical scrolling on the main content */}
+      <main className="flex-1 bg-white overflow-y-auto">
         {children}
       </main>
     </div>

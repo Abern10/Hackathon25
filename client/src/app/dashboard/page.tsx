@@ -11,9 +11,8 @@ export default async function DashboardPage() {
   const role = user.publicMetadata?.role;
 
   if (!role) {
-    // If no role is set, show role selection page
     return (
-      <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <main className="flex flex-col items-center justify-center h-screen bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
           <h1 className="text-2xl font-bold mb-6 text-center">Welcome to the Dashboard</h1>
           <p className="text-gray-600 mb-6 text-center">
@@ -32,7 +31,6 @@ export default async function DashboardPage() {
     );
   }
 
-  // Handle role-based redirects
   switch (role) {
     case 'admin':
     case 'professor':
@@ -40,9 +38,8 @@ export default async function DashboardPage() {
     case 'student':
       redirect('/dashboard/studentHomePage');
     default:
-      // Instead of redirecting back to dashboard, show an error state
       return (
-        <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+        <main className="flex flex-col items-center justify-center h-screen bg-gray-100">
           <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
             <h1 className="text-2xl font-bold mb-6 text-center text-red-600">Invalid Role</h1>
             <p className="text-gray-600 mb-6 text-center">

@@ -7,7 +7,7 @@ import "@/styles/studentHome.css";
 export default function StudentHomePage() {
   const { user } = useUser();
 
-  // Function to determine the greeting based on time of day
+  // Determine greeting based on time
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -15,14 +15,14 @@ export default function StudentHomePage() {
     return "Good evening";
   };
 
-  // Function to determine the current semester
+  // Get current semester
   const getCurrentSemester = () => {
-    const month = new Date().getMonth() + 1; // JS months are 0-based
+    const month = new Date().getMonth() + 1;
     const year = new Date().getFullYear();
     return month >= 1 && month <= 5 ? `Spring ${year}` : `Fall ${year}`;
   };
 
-  // Simulated API data (replace with real API later)
+  // Simulated API data
   const [notifications, setNotifications] = useState([
     { id: 1, message: "New lecture materials available for CS101." },
     { id: 2, message: "Midterm exam scheduled for March 15th." },
@@ -34,11 +34,10 @@ export default function StudentHomePage() {
     { id: 3, course: "ENG150", title: "Essay Draft", dueDate: "2025-02-25" },
   ]);
 
-  // Fetch student's enrolled courses dynamically (simulated API data)
+  // Fetch weekly schedule
   const [weeklySchedule, setWeeklySchedule] = useState([]);
 
   useEffect(() => {
-    // Simulate fetching from API
     setTimeout(() => {
       setWeeklySchedule([
         { id: 1, day: "Monday", time: "10:00 AM - 11:30 AM", course: "CS101" },
@@ -48,7 +47,7 @@ export default function StudentHomePage() {
     }, 500);
   }, []);
 
-  // Sort assignments by due date (nearest to farthest)
+  // Sort assignments by due date
   const sortedAssignments = assignments.sort(
     (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
   );
@@ -63,7 +62,7 @@ export default function StudentHomePage() {
       {/* Semester Title */}
       <h1 className="semester-title">Welcome to {getCurrentSemester()}</h1>
 
-      {/* Notifications Section */}
+      {/* Professor Announcements */}
       <div className="section-container">
         <h2 className="section-title">Professor Announcements</h2>
         {notifications.length > 0 ? (
@@ -77,7 +76,7 @@ export default function StudentHomePage() {
         )}
       </div>
 
-      {/* Assignments Section */}
+      {/* Upcoming Assignments */}
       <div className="section-container">
         <h2 className="section-title">Upcoming Assignments</h2>
         {sortedAssignments.length > 0 ? (
@@ -94,8 +93,8 @@ export default function StudentHomePage() {
         )}
       </div>
 
-      {/* Weekly Schedule Section */}
-      <div className="weekly-schedule-container">
+      {/* Weekly Schedule */}
+      <div className="section-container">
         <h2 className="section-title">Weekly Class Schedule</h2>
         {weeklySchedule.length > 0 ? (
           weeklySchedule.map((classTime) => (
