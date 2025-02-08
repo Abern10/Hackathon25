@@ -52,12 +52,12 @@ export default function Home() {
   
   // Function to handle starting a new message
   const handleStartMessage = (userId: string, courseId: string) => {
-    window.location.href = "/dashboard/messages/chat";
+    window.location.href = "/dashboard/professorMessages/chat";
   };
 
   // Function to handle course click
   const handleCourseClick = (courseId: string) => {
-    window.location.href = "/dashboard/messages/chat";
+    window.location.href = "/dashboard/professorMessages/chat";
   };
 
   // Function to toggle member list visibility
