@@ -45,44 +45,82 @@ export default function Sidebar() {
         <nav>
           <ul className="space-y-3">
             {role === "professor" ? (
-              <li>
-                <Link href="/dashboard/professorHomePage" className="block px-4 py-2 rounded-md hover:bg-gray-700">
-                  Home
-                </Link>
-              </li>
+              <>
+                <li>
+                  <Link href="/dashboard/professorHomePage" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/professorHomePage" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/professorCourses" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Courses
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/professorCalendar" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Calendar
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/professorGrades" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Grades
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/professorMessages" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Messages
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/professorUser" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Profile
+                  </Link>
+                </li>
+              </>   
             ) : (
-              <li>
-                <Link href="/dashboard/studentHomePage" className="block px-4 py-2 rounded-md hover:bg-gray-700">
-                  Home
-                </Link>
-              </li>
+              <>
+                <li>
+                  <Link href="/dashboard/studentHomePage" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/studentHomePage" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/studentCourses" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Courses
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/studentCalendar" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Calendar
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/studentGrades" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Grades
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/studentMessages" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Messages
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/studentUser" className="block px-4 py-2 rounded-md hover:bg-gray-700">
+                    Profile
+                  </Link>
+                </li>
+              </>   
             )}
-
-            <li>
-              <Link href="/dashboard/courses" className="block px-4 py-2 rounded-md hover:bg-gray-700">
-                Courses
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/calendar" className="block px-4 py-2 rounded-md hover:bg-gray-700">
-                Calendar
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/grades" className="block px-4 py-2 rounded-md hover:bg-gray-700">
-                Grades
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/messages" className="block px-4 py-2 rounded-md hover:bg-gray-700">
-                Messages
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/user" className="block px-4 py-2 rounded-md hover:bg-gray-700">
-                Profile
-              </Link>
-            </li>
           </ul>
         </nav>
       </div>
