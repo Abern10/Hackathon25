@@ -21,7 +21,6 @@ export default function SignInPage() {
 
     const checkRoleAndRedirect = async (userId: string) => {
         try {
-            // Get the user document from either collection
             const userDoc = await getDoc(doc(db, 'professors', userId));
             if (!userDoc.exists()) {
                 const studentDoc = await getDoc(doc(db, 'students', userId));
@@ -47,7 +46,6 @@ export default function SignInPage() {
         }
     };
 
-    // Use effect to check role and redirect when user is available
     useEffect(() => {
         if (user) {
             checkRoleAndRedirect(user.id);
@@ -57,11 +55,11 @@ export default function SignInPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError("")
-    
+
         if (!isLoaded) {
             return
         }
-    
+
         try {
             const result = await signIn.create({
                 identifier: email,
@@ -71,7 +69,6 @@ export default function SignInPage() {
             if (result.status === "complete") {
                 console.log("Sign in successful")
                 await setActive({ session: result.createdSessionId })
-                // The useEffect will handle redirect once user is available
             } else {
                 console.log("Sign in failed", result)
                 setError("Sign in failed. Please check your credentials.")
@@ -82,71 +79,89 @@ export default function SignInPage() {
         }
     }
 
+    const handleGoogleSignIn = async () => {
+        if (!signIn) return;
+
+        try {
+            await signIn.authenticateWithRedirect({
+                strategy: "oauth_google",
+                redirectUrl: "/sign-in", // Redirect back to sign-in page
+                redirectUrlComplete: "/dashboard", // Redirect after successful sign-in
+            });
+        } catch (err) {
+            console.error("Google sign-in error:", err);
+        }
+    };
+
     return (
-        <div className="min-h-screen w-full bg-white flex items-center justify-center">
-            <main className="bg-white w-full h-full">
-                <div className="relative z-10 w-full max-w-md mx-auto px-4">
-                    <div className="bg-transparent border border-zinc-800 rounded-2xl p-8 shadow-input">
-                        <h2 className="font-bold text-4xl text-black mb-4 justify-center items-center flex">
-                            CLASSFLOW
-                        </h2>
+        <div className="flex min-h-screen">
+            {/* Left: Sign-In Form */}
+            <div className="w-1/2 bg-white flex flex-col justify-center items-center px-12">
+                <h2 className="text-4xl font-bold text-black mb-2">Login to Your Account</h2>
+                <p className="text-gray-500 mb-6">Login using social networks</p>
 
-                        {error && (
-                            <p className="text-red-500 text-sm mb-4">{error}</p>
-                        )}
-                        <form onSubmit={handleSubmit}>
-                            <LabelInputContainer className="mb-4 !text-black bg-transparent">
-                                <Label htmlFor="email" className="!text-black">Email Address</Label>
-                                <Input 
-                                    id="email" 
-                                    placeholder="example@email.com" 
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                            </LabelInputContainer>
-                            <LabelInputContainer className="mb-6 !text-black ">
-                                <Label htmlFor="password" className="!text-black">Password</Label>
-                                <Input 
-                                    id="password" 
-                                    placeholder="••••••••" 
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                />
-                            </LabelInputContainer>
-                            <p className="text-sm text-black">DON'T HAVE AN ACCOUNT? 
-                            <span className="text-black underline rounded-lg font-bold transform hover:-translate-y-1 transition duration-400 px-2" onClick={() => router.push('/sign-up')}>SIGN UP</span>
-                            </p>
-
-                            <div className="flex items-center justify-center mt-10">
-                                <button type="submit" className="bg-white text-black text-2xl rounded-lg font-bold transform hover:-translate-y-1 transition duration-400 px-8 py-2">
-                                    LOGIN
-                                </button>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <button type="button" className="bg-white mt-4 text-black text-2xl rounded-lg font-bold transform hover:-translate-y-1 transition duration-400 px-8 py-2">
-                                    <IconBrandGoogle className="h-4 w-4 text-black" />
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                {/* Google Sign-In Button (Fixed) */}
+                <div className="flex items-center justify-center pb-[2rem]">
+                    <button 
+                        className="flex items-center gap-2 bg-white border border-gray-300 text-gray-900 text-lg px-6 py-3 rounded-lg font-semibold shadow-sm hover:bg-gray-100 transition"
+                        onClick={handleGoogleSignIn}
+                    >
+                        <IconBrandGoogle className="h-5 w-5 text-red-500" />
+                        Sign In with Google
+                    </button>
                 </div>
-            </main>
-        </div>
-    )
-}
 
-const LabelInputContainer = ({
-    children,
-    className,
-}: {
-    children: React.ReactNode;
-    className?: string;
-}) => {
-    return (
-        <div className={cn("flex flex-col space-y-2 w-full", className)}>
-            {children}
+                <div className="w-full border-t border-gray-300 mb-6 relative">
+                    <span className="absolute top-[-12px] left-1/2 transform -translate-x-1/2 bg-white px-2 text-gray-500">OR</span>
+                </div>
+
+                {/* Login Form */}
+                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+                <form onSubmit={handleSubmit} className="w-full max-w-sm">
+                    <div className="mb-4">
+                        <label className="block text-gray-700 font-semibold">Email Address</label>
+                        <div className="relative">
+                            <input
+                                type="email"
+                                placeholder="example@email.com"
+                                className="w-full border border-gray-300 rounded-md py-3 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block text-gray-700 font-semibold">Password</label>
+                        <div className="relative">
+                            <input
+                                type="password"
+                                placeholder="••••••••"
+                                className="w-full border border-gray-300 rounded-md py-3 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <button type="submit" className="w-full bg-green-500 text-white font-bold rounded-md py-3 mt-4 hover:bg-green-600">
+                        Sign In
+                    </button>
+                </form>
+            </div>
+
+            {/* Right: Sign-Up Call to Action */}
+            <div className="w-1/2 bg-gradient-to-br from-teal-400 to-blue-600 flex flex-col justify-center items-center text-white p-12">
+                <h2 className="text-3xl font-bold mb-2">New Here?</h2>
+                <p className="text-lg text-center mb-6">Sign up and discover a great amount of new opportunities!</p>
+                <button
+                    onClick={() => router.push('/sign-up')}
+                    className="bg-white text-blue-600 font-bold px-6 py-3 rounded-full shadow-lg hover:bg-gray-200 transition-all"
+                >
+                    Sign Up
+                </button>
+            </div>
         </div>
     );
-};
+}

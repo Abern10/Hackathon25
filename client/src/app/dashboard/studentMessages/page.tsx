@@ -9,7 +9,6 @@ import {
   MessageSquare, 
   ChevronDown 
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 // Enhanced interfaces
 interface User {
@@ -44,36 +43,21 @@ const courses: Course[] = [
       { id: "3", name: "Jane Smith", role: "student", email: "jane@university.edu" },
     ]
   },
-  {
-    id: "43231",
-    code: "2025.spring.cs.422.43231",
-    title: "CS 422 User Interface Design",
-    status: "Open",
-    instructor: "Dr. Johnson",
-    starred: false,
-    members: [
-      { id: "4", name: "Dr. Johnson", role: "instructor", email: "johnson@university.edu" },
-      { id: "5", name: "Sarah Wilson", role: "ta", email: "wilson@university.edu" },
-      { id: "6", name: "Mike Brown", role: "student", email: "brown@university.edu" },
-      { id: "7", name: "Emily Davis", role: "student", email: "davis@university.edu" }
-    ]
-  }
   // Add more courses as needed
 ];
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
-  const router = useRouter();
   
   // Function to handle starting a new message
   const handleStartMessage = (userId: string, courseId: string) => {
-    router.push(`/dashboard/studentMessages/chat?courseId=${courseId}&userId=${userId}`);
+    window.location.href = "/dashboard/studentMessages/chat";
   };
 
   // Function to handle course click
   const handleCourseClick = (courseId: string) => {
-    router.push(`/dashboard/studentMessages/chat?courseId=${courseId}`);
+    window.location.href = "/dashboard/studentMessages/chat";
   };
 
   // Function to toggle member list visibility
@@ -90,6 +74,21 @@ export default function Home() {
 
         {/* Controls Bar */}
         <div className="flex flex-wrap gap-4 items-center mb-6">
+          {/* View Toggle */}
+          <div className="flex border rounded overflow-hidden">
+            <button
+              className={`p-2 text-black transition ${viewMode === "list" ? "bg-gray-300" : "hover:bg-gray-200"}`}
+              onClick={() => setViewMode("list")}
+            >
+              <List size={20} />
+            </button>
+            <button
+              className={`p-2 text-black transition ${viewMode === "grid" ? "bg-gray-300" : "hover:bg-gray-200"}`}
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGrid size={20} />
+            </button>
+          </div>
 
           {/* Search */}
           <div className="flex-grow relative">

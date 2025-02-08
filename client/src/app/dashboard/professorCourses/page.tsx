@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useEffect, useState } from "react";
+import { db } from "@/lib/firebase"; // Ensure Firestore is initialized
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { IconList, IconBlocks, IconSearch, IconSettings } from "@tabler/icons-react";
 
@@ -15,21 +17,54 @@ interface Course {
   starred: boolean;
 }
 
-// Mock course data
-const courses: Course[] = [
-  {
-    id: "43230",
-    code: "[ADMIN] 2025.spring.cs.418.43230",
-    title: "CS 418 Introduction to Data Science",
-    status: "Open",
-    instructor: "Instructor Name",
-    starred: true,
-  },
-  // Add more courses as needed
-];
-
 export default function Home() {
+  const { user, isLoaded } = useUser(); // Clerk user authentication
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid"); // ✅ Track view mode
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      if (!isLoaded || !user) {
+        console.error("❌ User is not loaded or logged in.");
+        setLoading(false);
+        return;
+      }
+
+      const professorId = user.id; // Clerk user ID
+
+      try {
+        console.log("✅ Fetching courses for professor:", professorId);
+
+        const coursesQuery = query(
+          collection(db, "courses"),
+          where("professorId", "==", professorId)
+        );
+        const querySnapshot = await getDocs(coursesQuery);
+
+        if (!querySnapshot.empty) {
+          const fetchedCourses: Course[] = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Course[];
+          console.log("✅ Courses Fetched:", fetchedCourses);
+          setCourses(fetchedCourses);
+        } else {
+          console.warn("⚠️ No courses found for this professor.");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching courses:", error);
+      }
+
+      setLoading(false);
+    };
+
+    fetchCourses();
+  }, [isLoaded, user]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="bg-white h-full w-full">
@@ -93,7 +128,7 @@ export default function Home() {
         >
           {courses.map((course) => (
             <Link
-              href={`courses/class/${course.id}`}
+              href={`/courses/class/${course.id}`} // Dynamic course page
               key={course.id}
               className={`border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 ${
                 viewMode === "list" ? "flex items-center p-4 gap-4" : ""
