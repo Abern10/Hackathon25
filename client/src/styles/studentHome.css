@@ -1,0 +1,64 @@
+/* styles/studentHome.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Student Home Container */
+.student-home-container {
+  @apply max-w-6xl mx-auto px-6 py-8; /* Centers content */
+}
+
+/* Semester Title */
+.semester-title {
+  @apply text-4xl font-bold mb-8 text-gray-900; /* Bigger text, minimal style */
+}
+
+/* Section Container (for Notifications & Assignments) */
+.section-container {
+  @apply bg-white shadow-md rounded-lg p-6 mb-6 border border-gray-200; /* Minimalist card UI */
+}
+
+/* Section Title */
+.section-title {
+  @apply text-2xl font-semibold text-gray-800 mb-4;
+}
+
+/* Notification Item */
+.notification-item {
+  @apply p-4 bg-gray-100 rounded-lg mb-2 text-gray-700;
+}
+
+/* Assignments List */
+.assignment-item {
+  @apply flex justify-between p-4 bg-gray-50 rounded-lg mb-2;
+}
+
+.assignment-course {
+  @apply font-medium text-gray-900;
+}
+
+.assignment-date {
+  @apply text-gray-600 text-sm;
+}
+
+/* Weekly Schedule Section (Now matches other sections) */
+.weekly-schedule-container {
+  @apply p-6 bg-gray-50 border-l-4 border-gray-300 text-gray-900 rounded-md shadow;
+}
+
+.weekly-schedule-title {
+  @apply text-2xl font-semibold text-gray-800 mb-4;
+}
+
+.schedule-item {
+  @apply flex justify-between p-4 bg-white rounded-lg mb-2 border border-gray-200;
+}
+
+.schedule-course {
+  @apply font-medium text-gray-900;
+}
+
+.schedule-time {
+  @apply text-gray-600 text-sm;
+}
