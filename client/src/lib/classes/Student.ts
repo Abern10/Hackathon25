@@ -1,16 +1,11 @@
 export class Student {
     // unique fields to identify a student
-    private uin: number;
-    private name: string;
-    private email: string;
-    private access: string;
-
-    constructor(uin: number, name: string, email: string, access: string) {
-        this.uin = uin;
-        this.name = name;
-        this.email = email;
-        this.access = access;
-    }
+    constructor(
+        private uin: number,
+        private name: string,
+        private email: string,
+        private access: number
+    ) {}
 
     // setter functions
     public setUin(uin: number): void {
@@ -39,7 +34,7 @@ export class Student {
     }
 
     // can only get access instead of setting it
-    public getAccess(): string {
+    public getAccess(): number {
         return this.access;
     }
 }
