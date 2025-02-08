@@ -1,25 +1,25 @@
-"use client"; // Required for interactive behavior
+"use client";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useAuth, useUser, SignIn, useClerk } from "@clerk/nextjs";
+import { useAuth, useUser, SignIn, useClerk} from "@clerk/nextjs";
+import { NextRequest, NextResponse } from 'next/server'
+import { clerkClient } from '@clerk/nextjs/server'
 
 export default function AuthPage() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const { user } = useUser();
-  const clerk = useClerk(); // ✅ Use `useClerk()` correctly
+  const clerk = useClerk();
 
-  // State to track role selection
   const [selectedRole, setSelectedRole] = useState("");
 
-  // Redirect users if they are already signed in but don't have a role
   useEffect(() => {
     if (isSignedIn && user) {
       const role = user.publicMetadata?.role;
 
       if (!role) {
-        return; // Prevents infinite redirects if role is not set yet
+        return;
       }
 
       if (role === "admin" || role === "professor") {
@@ -27,22 +27,30 @@ export default function AuthPage() {
       } else if (role === "student") {
         router.replace("/dashboard/studentHomePage");
       } else {
-        router.replace("/dashboard"); // Fallback
+        router.replace("/dashboard");
       }
     }
   }, [isSignedIn, user, router]);
 
-  // Function to set role in Clerk metadata
   const handleRoleSelection = async (role: "professor" | "student") => {
-    setSelectedRole(role); // Update state immediately
-
     try {
-      // ✅ Fix: Use `updateProfile()` for publicMetadata
-      await clerk.user?.updateProfile({
-        publicMetadata: { role: role === "professor" ? "admin" : "student" },
+      if (!user) return;
+
+      const response = await fetch('/public/route.ts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          role,
+          userId: user.id
+        })
       });
 
-      // Redirect after setting role
+      if (!response.ok) {
+        throw new Error('Failed to update role');
+      }
+
       if (role === "professor") {
         router.replace("/dashboard/professorHomePage");
       } else {
@@ -52,6 +60,9 @@ export default function AuthPage() {
       console.error("Error updating role:", error);
     }
   };
+
+  
+
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
