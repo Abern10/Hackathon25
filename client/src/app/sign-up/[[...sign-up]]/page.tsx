@@ -125,19 +125,35 @@ export default function SignUpPage() {
 
     if (verifying) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="bg-white p-6 rounded shadow-lg">
-                    <h1 className="text-xl font-bold">Verify your email</h1>
-                    {error && <p className="text-red-500">{error}</p>}
-                    <form onSubmit={handleVerify}>
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-400 to-blue-600 p-6">
+                <div className="bg-white rounded-xl shadow-lg w-full max-w-md px-8 py-10 text-center">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-4">Verify Your Email</h1>
+                    <p className="text-gray-600 mb-6">Enter the code sent to your email.</p>
+    
+                    {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
+    
+                    <form onSubmit={handleVerify} className="space-y-5">
                         <LabelInputContainer>
-                            <Label>Enter your verification code</Label>
-                            <Input value={code} onChange={(e) => setCode(e.target.value)} />
+                            <Label className="text-gray-700">Verification Code</Label>
+                            <Input
+                                value={code}
+                                onChange={(e) => setCode(e.target.value)}
+                                placeholder="Enter code"
+                                className="text-center"
+                            />
                         </LabelInputContainer>
-                        <button type="submit" className="w-full bg-blue-500 text-white py-2 mt-4">
-                            Verify
+    
+                        <button type="submit" className="w-full bg-blue-500 text-white font-bold rounded-md py-3 hover:bg-blue-600 transition">
+                            Verify Account
                         </button>
                     </form>
+    
+                    <p className="text-gray-600 mt-6">
+                        Didn't receive the code?
+                        <span className="text-blue-500 font-bold cursor-pointer" onClick={handleSubmit}>
+                            {" "}Resend
+                        </span>
+                    </p>
                 </div>
             </div>
         );
