@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useUser, UserButton } from "@clerk/nextjs";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import Image from "next/image";
+import uicLogo from "@/images/uic-logo.png";
 
 export default function Sidebar() {
   const { user } = useUser();
@@ -36,10 +38,19 @@ export default function Sidebar() {
   return (
     <aside className="w-64 h-screen bg-gray-900 text-white flex flex-col justify-between p-4">
       {/* Dashboard Header */}
-      <div>
-        <h2 className="text-2xl font-bold mb-4">
-          CLASSFLOW
-        </h2>
+      <div className="text-center">
+        {/* Logo */}
+        <Image 
+          src={uicLogo} 
+          alt="UIC Logo" 
+          width={70} 
+          height={70} 
+          className="mx-auto mb-2 pb-5" 
+          />
+
+        {/* App Name */}
+        <h2 className="text-2xl font-bold mb-4">CLASSFLOW</h2>
+      {/* </div> */}
 
         {/* Navigation Links */}
         <nav>
