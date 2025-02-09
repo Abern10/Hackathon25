@@ -6,6 +6,15 @@ import { collection, addDoc, query, where, getDocs, doc, getDoc } from 'firebase
 import { db } from '@/lib/firebase';
 import { useAuth } from "@clerk/nextjs";
 
+interface Assignment {
+  id: string;
+  label: string;
+  dueDate: string;
+  description: string;
+  points: number;
+  type: string;
+}
+
 interface Event {
   id?: string;
   title: string;
@@ -14,8 +23,10 @@ interface Event {
   description: string;
   category?: string;
   createdBy: string;
-  creatorRole: 'student' | 'professor';
+  creatorRole: 'student' | 'professor' | 'system';
   isPublic: boolean;
+  courseName?: string;
+  points?: number;
 }
 
 const StudentCalendar: React.FC = () => {
@@ -24,6 +35,8 @@ const StudentCalendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<Event[]>([]);
   const [showEventForm, setShowEventForm] = useState<boolean>(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [showEventDetails, setShowEventDetails] = useState(false);
   const [newEvent, setNewEvent] = useState<Event>({
     title: "",
     date: format(new Date(), "yyyy-MM-dd"),
@@ -34,13 +47,20 @@ const StudentCalendar: React.FC = () => {
     isPublic: false
   });
 
-  // Function to get event style based on event type
+  const handleEventClick = (event: Event) => {
+    setSelectedEvent(event);
+    setShowEventDetails(true);
+  };
+
   const getEventStyle = (event: Event) => {
     if (event.creatorRole === 'student') {
       return 'bg-green-100 text-green-800 border border-green-300';
     }
 
-    // Professor event styles based on category
+    if (event.creatorRole === 'system') {
+      return 'bg-yellow-100 text-yellow-800 border border-yellow-300';
+    }
+
     const colors = {
       default: 'bg-purple-100 text-purple-800 border border-purple-300',
       assignment: 'bg-red-100 text-red-800 border border-red-300',
@@ -54,7 +74,6 @@ const StudentCalendar: React.FC = () => {
       : colors.default;
   };
 
-  // Fetch user role from Firebase
   useEffect(() => {
     const fetchUserRole = async () => {
       if (!userId) return;
@@ -78,16 +97,15 @@ const StudentCalendar: React.FC = () => {
     fetchUserRole();
   }, [userId]);
 
-  // Fetch events from Firebase
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchEventsAndAssignments = async () => {
       if (!userId || !userRole) return;
 
       try {
-        const eventsRef = collection(db, 'calendar_events');
         let fetchedEvents: Event[] = [];
 
-        // Fetch all professor events (public)
+        // Fetch professor events
+        const eventsRef = collection(db, 'calendar_events');
         const publicEventsQuery = query(
           eventsRef,
           where('creatorRole', '==', 'professor')
@@ -107,14 +125,56 @@ const StudentCalendar: React.FC = () => {
           fetchedEvents.push({ ...doc.data() as Event, id: doc.id });
         });
 
+        // Fetch course assignments
+        const coursesRef = collection(db, 'courses');
+        const coursesSnapshot = await getDocs(coursesRef);
+
+        coursesSnapshot.forEach((courseDoc) => {
+          const courseData = courseDoc.data();
+          
+          if (courseData.assignment) {
+            const assignmentEvent: Event = {
+              id: `assignment-${courseData.assignment.id || Date.now()}`,
+              title: courseData.assignment.label || 'Assignment',
+              date: courseData.assignment.dueDate,
+              time: "",
+              description: courseData.assignment.description || '',
+              category: 'assignment',
+              createdBy: 'system',
+              creatorRole: 'system',
+              isPublic: true,
+              courseName: courseData.courseName || courseData.courseCode,
+              points: courseData.assignment.points
+            };
+            fetchedEvents.push(assignmentEvent);
+          }
+        });
+
         setEvents(fetchedEvents);
       } catch (error) {
-        console.error("Error fetching events:", error);
+        console.error("Error fetching events and assignments:", error);
       }
     };
 
-    fetchEvents();
+    fetchEventsAndAssignments();
   }, [userId, userRole]);
+
+  const navigateMonth = (direction: 'next' | 'prev'): void => {
+    setCurrentDate(direction === "next" ? addMonths(currentDate, 1) : subMonths(currentDate, 1));
+  };
+
+  const getDaysInMonth = (): Date[] => {
+    const start = startOfWeek(startOfMonth(currentDate));
+    const end = endOfWeek(endOfMonth(currentDate));
+    return eachDayOfInterval({ start, end });
+  };
+
+  const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>): void => {
+    if ((e.target as HTMLDivElement).classList.contains("modal-overlay")) {
+      setShowEventForm(false);
+      setShowEventDetails(false);
+    }
+  };
 
   const handleEventSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -139,13 +199,9 @@ const StudentCalendar: React.FC = () => {
         isPublic: false
       };
 
-      // Add event to Firestore
       const docRef = await addDoc(collection(db, 'calendar_events'), eventToAdd);
-
-      // Update local state
       setEvents(prevEvents => [...prevEvents, { ...eventToAdd, id: docRef.id }]);
       
-      // Reset form
       setNewEvent({
         title: "",
         date: format(new Date(), "yyyy-MM-dd"),
@@ -162,22 +218,6 @@ const StudentCalendar: React.FC = () => {
     }
   };
 
-  const navigateMonth = (direction: 'next' | 'prev'): void => {
-    setCurrentDate(direction === "next" ? addMonths(currentDate, 1) : subMonths(currentDate, 1));
-  };
-
-  const getDaysInMonth = (): Date[] => {
-    const start = startOfWeek(startOfMonth(currentDate));
-    const end = endOfWeek(endOfMonth(currentDate));
-    return eachDayOfInterval({ start, end });
-  };
-
-  const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>): void => {
-    if ((e.target as HTMLDivElement).classList.contains("modal-overlay")) {
-      setShowEventForm(false);
-    }
-  };
-
   if (!isLoaded) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
@@ -191,7 +231,7 @@ const StudentCalendar: React.FC = () => {
       <header className="p-6 flex justify-between items-center border-b bg-white">
         <h1 className="text-2xl font-bold text-gray-900">Student Calendar</h1>
         <div className="text-sm text-gray-600">
-          View professor events and add your personal events
+          View professor events, course assignments, and manage personal events
         </div>
       </header>
 
@@ -224,7 +264,6 @@ const StudentCalendar: React.FC = () => {
             </div>
           </div>
 
-          {/* Calendar Legend */}
           <div className="mb-4 flex flex-wrap gap-4">
             <div className="text-sm flex items-center text-gray-900">
               <span className="w-3 h-3 rounded-full bg-purple-100 border border-purple-300 mr-2"></span>
@@ -232,7 +271,11 @@ const StudentCalendar: React.FC = () => {
             </div>
             <div className="text-sm flex items-center text-gray-900">
               <span className="w-3 h-3 rounded-full bg-red-100 border border-red-300 mr-2"></span>
-              Assignment
+              Professor Assignment
+            </div>
+            <div className="text-sm flex items-center text-gray-900">
+              <span className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-300 mr-2"></span>
+              Course Assignment
             </div>
             <div className="text-sm flex items-center text-gray-900">
               <span className="w-3 h-3 rounded-full bg-blue-100 border border-blue-300 mr-2"></span>
@@ -249,12 +292,12 @@ const StudentCalendar: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-7 gap-2">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day: string) => (
               <div key={day} className="text-center font-semibold py-2 text-gray-600">
                 {day}
               </div>
             ))}
-            {getDaysInMonth().map((day) => {
+            {getDaysInMonth().map((day: Date) => {
               const dayEvents = events.filter((event) =>
                 isSameDay(parseISO(event.date), day)
               );
@@ -271,14 +314,22 @@ const StudentCalendar: React.FC = () => {
                     {dayEvents.map((event) => (
                       <div
                         key={event.id}
-                        className={`mt-1 p-1 text-xs rounded truncate ${getEventStyle(event)}`}
-                        title={`${event.title}${event.description ? ` - ${event.description}` : ''}`}
+                        className={`mt-1 p-1 text-xs rounded truncate ${getEventStyle(event)} cursor-pointer hover:opacity-80`}
+                        title={`${event.title}${event.courseName ? ` - ${event.courseName}` : ''}${event.description ? ` - ${event.description}` : ''}${event.points ? ` (${event.points} points)` : ''}`}
+                        onClick={() => handleEventClick(event)}
                       >
                         {event.time && <span className="mr-1">{event.time}</span>}
                         {event.title}
-                        <div className="text-xs opacity-75">
-                          {event.creatorRole === 'professor' ? '(Professor)' : '(Personal)'}
-                        </div>
+                        {event.courseName && (
+                          <div className="text-xs opacity-75">
+                            {event.courseName} {event.points && `(${event.points}pts)`}
+                          </div>
+                        )}
+                        {!event.courseName && (
+                          <div className="text-xs opacity-75">
+                            {event.creatorRole === 'professor' ? '(Professor)' : event.creatorRole === 'system' ? '(Assignment)' : '(Personal)'}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -288,6 +339,7 @@ const StudentCalendar: React.FC = () => {
           </div>
         </div>
 
+        {/* Event Form Modal */}
         {showEventForm && (
           <div 
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal-overlay"
@@ -354,6 +406,60 @@ const StudentCalendar: React.FC = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Event Details Modal */}
+        {showEventDetails && selectedEvent && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal-overlay"
+            onClick={handleClickOutside}
+          >
+            <div className="bg-white p-6 rounded-lg w-full max-w-md">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">Event Details</h3>
+                <button
+                  onClick={() => setShowEventDetails(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className={`p-3 rounded-lg mb-4 ${getEventStyle(selectedEvent)}`}>
+                <h4 className="font-semibold mb-1">{selectedEvent.title}</h4>
+                {selectedEvent.courseName && (
+                  <p className="text-sm mb-1">
+                    Course: {selectedEvent.courseName}
+                  </p>
+                )}
+                <p className="text-sm mb-1">
+                  Date: {format(parseISO(selectedEvent.date), 'MMMM d, yyyy')}
+                </p>
+                {selectedEvent.time && (
+                  <p className="text-sm mb-1">
+                    Time: {selectedEvent.time}
+                  </p>
+                )}
+                {selectedEvent.points && (
+                  <p className="text-sm mb-1">
+                    Points: {selectedEvent.points}
+                  </p>
+                )}
+                {selectedEvent.description && (
+                  <p className="text-sm mt-2">
+                    Description: {selectedEvent.description}
+                  </p>
+                )}
+                <p className="text-sm mt-2 opacity-75">
+                  Type: {
+                    selectedEvent.creatorRole === 'professor' ? 'Professor Event' :
+                    selectedEvent.creatorRole === 'system' ? 'Course Assignment' :
+                    'Personal Event'
+                  }
+                </p>
+              </div>
             </div>
           </div>
         )}
